@@ -2,6 +2,7 @@ import os
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from main import run_evaluation
@@ -9,6 +10,14 @@ from main import run_evaluation
 load_dotenv()
 
 app = FastAPI(title="AI Idea Validator", version="1.0.0")
+
+_allowed_origins = os.getenv("ALLOWED_ORIGINS", "http://localhost:5173").split(",")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[origin.strip() for origin in _allowed_origins],
+    allow_methods=["GET", "POST"],
+    allow_headers=["*"],
+)
 
 
 class IdeaRequest(BaseModel):

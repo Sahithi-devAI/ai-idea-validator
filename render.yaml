@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: ai-idea-validator-api
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn api.routes:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: LLM_PROVIDER
+        value: anthropic
+      - key: LLM_MODEL
+        value: claude-sonnet-4-6
+      - key: ALLOWED_ORIGINS
+        value: http://localhost:5173
