@@ -25,12 +25,12 @@ class IdeaRequest(BaseModel):
     provider: str = "anthropic"
 
 
-@app.get("/health")
+@app.get("/api/health")
 async def health():
     return {"status": "ok", "version": "1.0.0"}
 
 
-@app.post("/evaluate")
+@app.post("/api/evaluate")
 async def evaluate_idea(request: IdeaRequest):
     try:
         result = run_evaluation(request.idea, provider=request.provider)
