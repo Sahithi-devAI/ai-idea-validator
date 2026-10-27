@@ -43,14 +43,24 @@ def _extract_score(text: str) -> Optional[int]:
     return None
 
 
+def _strip_markdown_emphasis(text: str) -> str:
+    """Remove markdown bold/italic markers, keeping the wrapped text."""
+    return re.sub(r"\*{1,3}([^*]+?)\*{1,3}", r"\1", text)
+
+
 def _extract_list_items(text: str) -> list[str]:
     """Extract bullet/numbered list items from a block of text."""
     items = []
     for line in text.splitlines():
         line = line.strip()
+        if not re.match(r"^[-*•]|\d+\.", line):
+            continue
         cleaned = re.sub(r"^[-*•]|\d+\.\s*", "", line).strip()
-        if cleaned and re.match(r"^[-*•]|\d+\.", line):
-            items.append(cleaned)
+        cleaned = _strip_markdown_emphasis(cleaned).strip()
+        # Skip markdown horizontal-rule artifacts (e.g. "--", "---") with no real content
+        if not cleaned or re.fullmatch(r"[-*_\s]*", cleaned):
+            continue
+        items.append(cleaned)
     return items
 
 
@@ -72,7 +82,9 @@ def parse_output(raw: str, idea: str) -> EvaluationResult:
             justification = re.sub(r"\*{0,2}[Ss]core[:\s]+\d\s*/?\s*5\*{0,2}", "", section)
             # Remove any leftover lines that are only asterisks/whitespace
             justification = re.sub(r"^\s*\*+\s*$", "", justification, flags=re.MULTILINE)
-            justification = justification.strip()
+            # Drop trailing markdown horizontal-rule artifacts (e.g. "---")
+            justification = re.sub(r"\n?-{2,}\s*$", "", justification)
+            justification = _strip_markdown_emphasis(justification).strip()
         else:
             score = None
             justification = ""
@@ -97,10 +109,12 @@ def parse_output(raw: str, idea: str) -> EvaluationResult:
     build_signal = _extract_build_signal(signal_section) or _extract_build_signal(raw) or BuildSignal.EXPLORE_MORE
 
     weakest_raw = _extract_section(raw, "Weakest Dimension") or ""
-    weakest_dimension = weakest_raw.splitlines()[0].strip() if weakest_raw else ""
+    weakest_dimension = (
+        _strip_markdown_emphasis(weakest_raw.splitlines()[0]).strip() if weakest_raw else ""
+    )
 
     verdict_raw = _extract_section(raw, "Verdict") or ""
-    verdict = verdict_raw.splitlines()[0].strip() if verdict_raw else ""
+    verdict = _strip_markdown_emphasis(verdict_raw.splitlines()[0]).strip() if verdict_raw else ""
 
     return EvaluationResult(
         idea=idea,

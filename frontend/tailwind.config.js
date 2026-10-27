@@ -4,27 +4,45 @@ export default {
   darkMode: "media",
   theme: {
     extend: {
+      fontFamily: {
+        sans: ["Inter", "system-ui", "-apple-system", "Segoe UI", "sans-serif"],
+        display: ["Space Grotesk", "system-ui", "sans-serif"],
+        mono: ["IBM Plex Mono", "ui-monospace", "SFMono-Regular", "monospace"],
+      },
       colors: {
-        surface: { light: "#fcfcfb", dark: "#1a1a19" },
-        plane: { light: "#f9f9f7", dark: "#0d0d0d" },
-        ink: {
-          primary: { light: "#0b0b0b", dark: "#ffffff" },
-          secondary: { light: "#52514e", dark: "#c3c2b7" },
-          muted: "#898781",
+        ink: "#1B2540",
+        cream: "#F5F3EC",
+        muted: "#A8AFC0",
+        card: {
+          DEFAULT: "#FFFFFF",
+          muted: "#8D959C",
+          muted2: "#5B6377",
+          text2: "#4A4558",
         },
-        hairline: { light: "#e1e0d9", dark: "#2c2c2a" },
-        status: {
-          good: "#0ca30c",
-          warning: "#fab219",
-          serious: "#ec835a",
-          critical: "#d03b3b",
+        divider: "#E3E7EA",
+        tier: {
+          strong: "#2E7D4F",
+          cautious: "#D1A62C",
+          "cautious-text": "#B5841C",
+          explore: "#8A94A0",
+          reject: "#B5542B",
         },
-        seq: {
-          "track-light": "#cde2fb",
-          "fill-light": "#2a78d6",
-          "track-dark": "#184f95",
-          "fill-dark": "#6da7ec",
+      },
+      backgroundImage: {
+        "dot-grid":
+          "radial-gradient(circle, rgba(255,255,255,0.055) 1px, transparent 1.4px)",
+      },
+      backgroundSize: {
+        "dot-grid": "24px 24px",
+      },
+      keyframes: {
+        "card-reveal": {
+          "0%": { opacity: "0", transform: "translateY(18px) scale(0.95) rotate(var(--tilt, 0deg))" },
+          "100%": { opacity: "1", transform: "translateY(0) scale(1) rotate(var(--tilt, 0deg))" },
         },
+      },
+      animation: {
+        "card-reveal": "card-reveal 0.7s cubic-bezier(0.16, 1, 0.3, 1) both",
       },
     },
   },
