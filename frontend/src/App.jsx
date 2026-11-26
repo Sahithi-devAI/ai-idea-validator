@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { evaluateIdea } from "./api.js";
 import BuildSignalBadge, { SIGNAL_META } from "./components/BuildSignalBadge.jsx";
 import DimensionCard from "./components/DimensionCard.jsx";
@@ -14,10 +14,35 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [result, setResult] = useState(null);
+  const [elapsed, setElapsed] = useState(0);
+  const resultsRef = useRef(null);
+  const errorRef = useRef(null);
+  const loadingRef = useRef(null);
 
   const trimmedLength = idea.trim().length;
   const isValid = trimmedLength >= MIN_LENGTH && trimmedLength <= MAX_LENGTH;
   const tierColor = result ? SIGNAL_META[result.build_signal]?.tier || "#1B2540" : "#1B2540";
+
+  const scrollBehavior = () =>
+    window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
+
+  // Tick an elapsed-seconds counter while the evaluation is in flight, and make sure
+  // the progress panel is on screen so it's clear something is happening.
+  useEffect(() => {
+    if (!loading) return;
+    setElapsed(0);
+    loadingRef.current?.scrollIntoView({ behavior: scrollBehavior(), block: "nearest" });
+    const id = setInterval(() => setElapsed((s) => s + 1), 1000);
+    return () => clearInterval(id);
+  }, [loading]);
+
+  // When a result (or error) arrives, bring it into view so it's obvious the evaluation finished.
+  useEffect(() => {
+    const target = result ? resultsRef.current : error ? errorRef.current : null;
+    if (!target) return;
+    target.scrollIntoView({ behavior: scrollBehavior(), block: "start" });
+    target.focus({ preventScroll: true });
+  }, [result, error]);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -103,14 +128,44 @@ export default function App() {
           </span>
         </div>
 
+        {loading && (
+          <div
+            ref={loadingRef}
+            role="status"
+            aria-live="polite"
+            className="mx-auto mt-8 flex max-w-xl scroll-mb-8 items-center gap-4 rounded-2xl border border-divider bg-card p-5 animate-fade-up"
+          >
+            <span
+              aria-hidden="true"
+              className="h-5 w-5 shrink-0 animate-spin rounded-full border-2 border-[#D7DEE2] border-t-ink"
+            />
+            <div className="flex-1">
+              <p className="font-display text-sm font-bold text-ink">Evaluating your idea…</p>
+              <p className="mt-0.5 text-xs text-card-muted2">
+                Usually takes about 15 seconds. We'll take you to the verdict when it's ready.
+              </p>
+            </div>
+            <span className="font-mono text-xs tabular-nums text-card-muted">{elapsed}s</span>
+          </div>
+        )}
+
         {error && (
-          <div className="mx-auto mt-8 max-w-xl rounded-xl border border-tier-reject/40 bg-tier-reject/10 p-4 text-sm text-cream">
+          <div
+            ref={errorRef}
+            tabIndex={-1}
+            role="alert"
+            className="mx-auto mt-8 scroll-mt-8 outline-none max-w-xl rounded-xl border border-tier-reject/40 bg-tier-reject/10 p-4 text-sm text-cream">
             {error}
           </div>
         )}
 
         {result && (
-          <div className="mx-auto mt-14 max-w-xl space-y-8">
+          <div
+            ref={resultsRef}
+            tabIndex={-1}
+            aria-label="Evaluation result"
+            className="mx-auto mt-14 max-w-xl scroll-mt-8 space-y-8 outline-none animate-fade-up"
+          >
             <BuildSignalBadge
               signal={result.build_signal}
               verdict={result.verdict}
