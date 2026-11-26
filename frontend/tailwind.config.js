@@ -40,9 +40,14 @@ export default {
           "0%": { opacity: "0", transform: "translateY(18px) scale(0.95) rotate(var(--tilt, 0deg))" },
           "100%": { opacity: "1", transform: "translateY(0) scale(1) rotate(var(--tilt, 0deg))" },
         },
+        "fade-up": {
+          "0%": { opacity: "0", transform: "translateY(12px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
       },
       animation: {
         "card-reveal": "card-reveal 0.7s cubic-bezier(0.16, 1, 0.3, 1) both",
+        "fade-up": "fade-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) both",
       },
     },
   },
